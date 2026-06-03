@@ -3,6 +3,7 @@ from app.api.dependencies import get_current_user
 from app.models.record import RecordModel
 from app.services.file_service import FileService
 from app.db.database import get_database
+from app.services.s3_utils import upload_file_to_s3
 
 router = APIRouter()
 
@@ -35,9 +36,14 @@ async def upload_mri(
         current_user["user_id"],
         record.record_id
     )
+    s3_path = upload_file_to_s3(
+        file_path,
+        f"uploads/{record.record_id}_{file.filename}"
+    )
 
     # Update scan_path after saving
     record.scan_path = file_path
+    record.s3_scan_path = s3_path
 
     # Persist record to MongoDB
     db = get_database()

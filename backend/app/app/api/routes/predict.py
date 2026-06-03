@@ -62,6 +62,7 @@ async def predict_mri(
         {"$set": {
             "prediction"      : result["prediction"],
             "confidence_score": result["confidence_score"],
+            "s3_heatmap_path": result["heatmap_s3_path"],
             "heatmap_url"     : f"/predict/heatmap/{record_id}",
             "status"          : "Completed",
         }},

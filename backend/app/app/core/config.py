@@ -3,8 +3,9 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "NeuroScan AI"
+
     MONGO_URI: str = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-    DATABASE_NAME: str = "neuroscan"
+    DATABASE_NAME: str = "schizobrain"
 
     JWT_SECRET: str = os.getenv("JWT_SECRET", "your_super_secret_key_here")
     JWT_ALGORITHM: str = "HS256"
@@ -16,8 +17,18 @@ class Settings(BaseSettings):
     EMAIL_USER: str = os.getenv("EMAIL_USER", "your_email@gmail.com")
     EMAIL_PASS: str = os.getenv("EMAIL_PASS", "your_app_password")
 
-    # Admin secret key — required for admin login
-    ADMIN_SECRET_KEY: str = os.getenv("ADMIN_SECRET_KEY", "neuroscan_admin_2026")
+    ADMIN_SECRET_KEY: str = os.getenv(
+        "ADMIN_SECRET_KEY",
+        "neuroscan_admin_2026"
+    )
+
+    # AWS S3
+    AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID", "")
+    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    AWS_REGION: str = os.getenv("AWS_REGION", "ap-south-2")
+    S3_BUCKET_NAME: str = os.getenv("S3_BUCKET_NAME", "")
+    BREVO_API_KEY: str = os.getenv("BREVO_API_KEY", "")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")
 
     class Config:
         env_file = ".env"

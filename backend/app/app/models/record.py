@@ -11,7 +11,10 @@ class RecordModel(BaseModel):
     user_id         : str
     filename        : str      = ""
     scan_path       : str      = ""
+    s3_scan_path    : str      = ""      # NEW
     heatmap_url     : str      = ""
+    s3_heatmap_path : str      = ""
+    s3_report_path  : str      = ""
     prediction      : str      = "Pending"
     confidence_score: float    = 0.0
     status          : str      = "Uploaded"

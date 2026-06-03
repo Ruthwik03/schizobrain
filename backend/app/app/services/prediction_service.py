@@ -15,6 +15,7 @@ import matplotlib.cm as cm
 from scipy.ndimage import zoom, gaussian_filter
 
 from app.models.schizo_brain_model import SchizoBrainModel
+from app.services.s3_utils import upload_file_to_s3
 
 # ── Paths ──────────────────────────────────────────────────────
 MODEL_PATH = Path(__file__).parent.parent / "deployment_model.pt"
@@ -338,6 +339,7 @@ def run_prediction(file_bytes: bytes, filename: str, record_id: str) -> dict:
     print(f"  result    : {prediction}")
 
     heatmap_path = str(UPLOAD_DIR / f"{record_id}_heatmap.png")
+
     generate_gradcam(
         tensor,
         save_path=heatmap_path,
@@ -345,11 +347,21 @@ def run_prediction(file_bytes: bytes, filename: str, record_id: str) -> dict:
         pred_score=prob,
     )
 
+    heatmap_s3_path = upload_file_to_s3(
+        heatmap_path,
+        f"heatmaps/{record_id}_heatmap.png"
+    )
+
+    print("Heatmap uploaded:", heatmap_s3_path)
+
     return {
-        "prediction"      : prediction,
+        "prediction": prediction,
         "confidence_score": round(prob, 4),
-        "confidence_pct"  : round(prob * 100, 1),
-        "threshold_used"  : round(THRESHOLD, 4),
-        "heatmap_path"    : heatmap_path,
-        "model_version"   : MODEL_VERSION,
+        "confidence_pct": round(prob * 100, 1),
+        "threshold_used": round(THRESHOLD, 4),
+
+        "heatmap_path": heatmap_path,
+        "heatmap_s3_path": heatmap_s3_path,
+
+        "model_version": MODEL_VERSION,
     }

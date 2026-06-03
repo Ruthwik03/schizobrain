@@ -5,6 +5,7 @@ from app.db.database import get_database
 from pathlib import Path
 from datetime import datetime
 import io
+from app.services.s3_utils import upload_file_to_s3
 
 router = APIRouter(prefix="/report", tags=["Report"])
 
@@ -265,9 +266,39 @@ async def generate_report(
     c.save()
     buf.seek(0)
 
+    reports_dir = UPLOADS_DIR / "reports"
+    reports_dir.mkdir(exist_ok=True)
+
+    pdf_path = reports_dir / f"{record_id}.pdf"
+
+    with open(pdf_path, "wb") as f:
+        f.write(buf.getvalue())
+
+    # Upload PDF to S3
+    report_s3_path = upload_file_to_s3(
+        str(pdf_path),
+        f"reports/{record_id}.pdf"
+    )
+
+    print("PDF uploaded:", report_s3_path)
+
+    # Save S3 path in MongoDB
+    await db.records.update_one(
+        {"record_id": record_id},
+        {
+            "$set": {
+                "s3_report_path": report_s3_path
+            }
+        }
+    )
+
     filename = f"NeuroScan_Report_{record_id[:8]}.pdf"
+
     return StreamingResponse(
         buf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={
+            "Content-Disposition":
+            f'attachment; filename="{filename}"'
+        },
     )
