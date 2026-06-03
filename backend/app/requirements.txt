@@ -10,6 +10,7 @@ pydantic-settings
 email-validator
 reportlab
 aiofiles
+sib-api-v3-sdk
 
 # AWS S3
 boto3
