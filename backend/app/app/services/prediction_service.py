@@ -16,9 +16,10 @@ from scipy.ndimage import zoom, gaussian_filter
 
 from app.models.schizo_brain_model import SchizoBrainModel
 from app.services.s3_utils import upload_file_to_s3
+from app.services.s3_service import s3, BUCKET
 
 # ── Paths ──────────────────────────────────────────────────────
-MODEL_PATH = Path(__file__).parent.parent / "deployment_model.pt"
+LOCAL_MODEL_PATH = "/tmp/deployment_model.pt"
 UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -39,13 +40,31 @@ NEURO_CMAP = LinearSegmentedColormap.from_list(
     ]
 )
 
+def download_model_from_s3():
+    if os.path.exists(LOCAL_MODEL_PATH):
+        print("✅ Model already downloaded")
+        return
+
+    print("⬇ Downloading model from S3...")
+
+    s3.download_file(
+        BUCKET,
+        "models/deployment_model.pt",
+        LOCAL_MODEL_PATH
+    )
+
+    print("✅ Model downloaded")
+
 
 def load_model():
-    if not MODEL_PATH.exists():
-        raise FileNotFoundError(f"❌ Model not found at {MODEL_PATH}")
+    download_model_from_s3()
 
     global MODEL_VERSION
-    pkg = torch.load(MODEL_PATH, map_location=device, weights_only=False)
+    pkg = torch.load(
+        LOCAL_MODEL_PATH,
+        map_location=device,
+        weights_only=False
+    )
 
     if "threshold" not in pkg:
         raise RuntimeError("❌ 'threshold' key missing from deployment_model.pt.")
